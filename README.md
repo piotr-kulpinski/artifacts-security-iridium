@@ -2,21 +2,21 @@
 
 This repository contains the code for the paper "Systematic Security Analysis of the Iridium Radio Link".
 
-This code contains the following main components:
-|-- pipeline.py : Privacy oriented pipeline for processing Iridium traffic
-|-- jamming-sim.py : Simulation of jamming attacks on Iridium signals
-|-- gr-iridiumtx/ :  GNU Radio module for transmitting Iridium signals, it is based on GNU Radio module template
-| |-- grc/ : yaml files for custom GNU Radio blocks
-| |-- include/ : header files for custom GNU Radio blocks
-| |-- lib/ : C++ source files for custom GNU Radio blocks
-| |  |-- add_usrp_tags_impl.cc : add USRP tags for bursty transmission
-| |  |-- freq_impl.cc : frequency shifting block
-| |  |-- insert_delay_impl.cc : time offset block
-| |-- python/
-| |  |-- iridiumtx/ : main python script to control the GNU Radio flowgraph
-| |-- sample-data/ : sample data for testing
-| |-- utils/ : utility scripts for processing data
-| |  |-- convert_to_bitstream.py : converts a file of parsed frames from iridium-toolkit back text to bitstreams to be modulated
+This code contains the following main components: <br>
+|-- pipeline.py : Privacy oriented pipeline for processing Iridium traffic <br>
+|-- jamming-sim.py : Simulation of jamming attacks on Iridium signals <br>
+|-- gr-iridiumtx/ :  GNU Radio module for transmitting Iridium signals <br>
+| |-- grc/ : yaml files for custom GNU Radio blocks<br>
+| |-- include/ : header files for custom GNU Radio blocks<br>
+| |-- lib/ : C++ source files for custom GNU Radio blocks<br>
+| |  |-- add_usrp_tags_impl.cc : add USRP tags for bursty transmission<br>
+| |  |-- freq_impl.cc : frequency shifting block<br>
+| |  |-- insert_delay_impl.cc : time offset block<br>
+| |-- python/<br>
+| |  |-- iridiumtx/ : main python script to control the GNU Radio flowgraph<br>
+| |-- sample-data/ : sample data for testing<br>
+| |-- utils/ : utility scripts for processing data<br>
+| |  |-- convert_to_bitstream.py : converts a file of parsed frames from iridium-toolkit back text to bitstreams to be modulated<br>
 
 ## Source code
 

@@ -58,6 +58,10 @@ sudo cmake --install build
 sudo ldconfig
 ```
 
+## Hardware
+- Any SDR supporting 10 MHz bandwidth and L-band frequencies (e.g., USRP B210)
+- L-band antenna
+- Appropriate cables
 
 ## Usage
 For generating SigMF files from recorded or created Iridium traffic. The recorded text output from gr-iridium can be replayed into a SigMF file. Example of the Ring alerts are presented in the sample-data directory. Depending on the number of frames being transmitted in parallel at the same time offset, set this many channels.

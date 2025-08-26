@@ -1,22 +1,5 @@
 import numpy as np
 from scipy.stats import entropy
-import sys
-import re
-import os
-
-base_freq=1616*(10**6)   # int
-channel_width=1e7/(30*8) # 30 sub-bands with 8 "frequency accesses" each
-
-# return index instead subband.access
-def channelize_str(freq):
-    fbase = freq-base_freq
-    freq_chan = int(fbase / channel_width)
-    sb = int(freq_chan/8)+1
-    fa = (freq_chan % 8)+1
-    sx = freq_chan-30*8+1
-    foff = fbase%channel_width
-    freq_off = foff-(channel_width/2)
-    return freq_chan
 
 # it needs at least 64 bytes to calculate entropy correctly
 def calculate_entropy(data):
@@ -58,3 +41,24 @@ def is_hex_encrypted(hex_string):
     threshold = 7.0
     
     return entropy_value > threshold
+
+
+# function taken from iridium-toolkit
+# https://github.com/muccc/iridium-toolkit
+
+# Everything below is (c) Sec & schneider and licensed under the 2-Clause BSD License
+# Slightly editted to fit use case
+
+base_freq=1616*(10**6)   # int
+channel_width=1e7/(30*8) # 30 sub-bands with 8 "frequency accesses" each
+
+# return index instead subband.access
+def channelize_str(freq):
+    fbase = freq-base_freq
+    freq_chan = int(fbase / channel_width)
+    sb = int(freq_chan/8)+1
+    fa = (freq_chan % 8)+1
+    sx = freq_chan-30*8+1
+    foff = fbase%channel_width
+    freq_off = foff-(channel_width/2)
+    return freq_chan

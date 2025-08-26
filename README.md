@@ -4,7 +4,13 @@ This repository contains the code for the paper "Systematic Security Analysis of
 
 This code contains the following main components: <br>
 |-- pipeline.py : Privacy oriented pipeline for processing Iridium traffic <br>
-|-- jamming-sim.py : Simulation of jamming attacks on Iridium signals <br>
+|-- jsr-prr.py : Simulation of jamming attacks on Iridium Ring Alert <br>
+|-- jamming.grc : GNU Radio flowgraph for jamming attacks <br>
+|-- replay.grc : GNU Radio flowgraph for replay attacks from SigMF files<br>
+|-- plot-prr.py : Plotting script for Packet Reception Rate (PRR) against the SNR <br>
+|-- bch.py : supporting BCH functions <br>
+|-- ber.py : supporting Bit Error Rate (BER) functions <br>
+|-- util.py : supporting utility functions <br>
 |-- gr-iridiumtx/ :  GNU Radio module for transmitting Iridium signals <br>
 | |-- grc/ : yaml files for custom GNU Radio blocks<br>
 | |-- include/ : header files for custom GNU Radio blocks<br>

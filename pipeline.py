@@ -9,6 +9,8 @@ import util
 import sqlite3
 import sys
 import select
+from ber import calculate_ber
+import numpy as np
 
 BUFFER_SIZE = 1000  # Number of lines to buffer before processing
 
@@ -48,6 +50,10 @@ channel_map = [f"{i}.{j}" for i in range(1, 40) for j in range(1, 9)]
 
 channels_buf = [[] for _ in channel_map]
 
+GRANULARITY = 1000
+prr_buf = np.array([0.0 for _ in range(0,GRANULARITY)])
+prr_count_frames = np.array([0 for _ in range(0,GRANULARITY)])
+
 def init_db():
     """
     Initializes the SQLite database for storing Iridium metadata.
@@ -70,6 +76,14 @@ def init_db():
             type TEXT,
             enc INTEGER,
             total INTEGER
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS prr_stats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prr_sum REAL,
+            count INTEGER
         )
     ''')
 
@@ -105,6 +119,20 @@ def init_db():
             cursor.execute('''
                 INSERT INTO encryption_stats (type, enc, total) VALUES (?, ?, ?)
             ''', (lcw_type, 0, 0))
+
+    cursor.execute('SELECT prr_sum, count FROM prr_stats')
+    rows = cursor.fetchall()
+    if rows:
+        for idx, row in enumerate(rows):
+            prr_sum, count = row
+            prr_buf[idx] = prr_sum
+            prr_count_frames[idx] = count
+    else:
+        # Initialize prr_stats table
+        for _ in range(GRANULARITY):
+            cursor.execute('''
+                INSERT INTO prr_stats (prr_sum, count) VALUES (?, ?)
+            ''', (0.0, 0))
         
     conn.commit()
     conn.close()
@@ -128,7 +156,19 @@ def update_db():
             UPDATE encryption_stats
             SET enc = ?, total =  ?
             WHERE type = ?
-        ''', (counts["enc"], counts["total"], lcw_type))  
+        ''', (counts["enc"], counts["total"], lcw_type)) 
+
+    # Update prr_stats table
+    for idx in range(GRANULARITY):
+        prr_val = prr_buf[idx]
+        prr_count = prr_count_frames[idx]
+        cursor.execute('''
+            UPDATE prr_stats
+            SET prr_sum = ?, count = ?
+            WHERE id = ?
+        ''', (float(prr_val), int(prr_count), idx + 1))
+    
+
     conn.commit()
     conn.close()
 
@@ -189,9 +229,12 @@ def process_line(line):
         
         # Extract timestamp
         time = parts[1]
-        seconds = int(time.split("-")[1])
-        offset = float(parts[2])/1000
-        time = seconds + offset
+        if time.split("-")[1].isdigit():
+            seconds = int(time.split("-")[1])
+            offset = float(parts[2])/1000
+            time = seconds + offset
+        else: # fallback if the timestamp is not in expected format, and just use milisecond offset
+            time = float(parts[2])/1000
 
         # Extract frequency and channel index
         freq = parts[3]
@@ -276,6 +319,22 @@ def parse_by_line(lines):
         print(f"Error splitting lines: {e}")
         return None
 
+def get_prr(lines):
+    try:
+        # BER calculation
+        # Calculate the packet reception rate per SNR index calculated per received frame
+        for line in lines:
+            res = calculate_ber(line)
+            if res is not None:
+                bit_errors, snr, noise, len_bits = res
+                packet_reception_rate = np.power((1 - (bit_errors/len_bits)), len_bits)
+                prr_id = int(round(float(snr), 1) * 10)
+                prr_buf[prr_id] += packet_reception_rate
+                prr_count_frames[prr_id] += 1
+    except Exception as e:
+        print(f"An error occurred while calculating PRR: {e}")
+        return None
+
 
 def parse_iridium_traffic(lines:str, debug=False):
     try:
@@ -289,19 +348,20 @@ def parse_iridium_traffic(lines:str, debug=False):
         if debug: print("iridium-parser PID: ", iridium_parser.pid)
         stdout, stderr = iridium_parser.communicate(input=lines)
 
-        if stderr:
+        if stderr and "Warning" in stderr:
+                if debug: print("Warning from iridium-toolkit:", stderr.strip())
+        elif stderr:
             print("Error from iridium-toolkit:", stderr.strip())
-            return None
-        # Process the output from iridium-toolkit
-        output_line = stdout.strip()
-        if not output_line:
+            return None 
+        output_lines = stdout.strip()
+        if not output_lines:
             print("No output received from iridium-toolkit.")
             return None
         if iridium_parser.returncode != 0:
-            print(f"Error parsing with iridium-toolkit: {output_line.strip()}")
+            print(f"Error parsing with iridium-toolkit: {output_lines.strip()}")
             return None
         
-        parse_by_line(output_line)
+        parse_by_line(output_lines)
 
     except FileNotFoundError:
         print("iridium-toolkit is not installed or not in PATH.")
@@ -354,6 +414,8 @@ def run_data_collection(config_path=None, sigmf_file=None, debug=False):
                 print(f"Processing {BUFFER_SIZE} buffered lines...")
                 lines = '\n'.join(buffer)
                 parse_iridium_traffic(lines, debug=debug)
+                get_prr(buffer)
+
                 # Clear the buffer and reset line count
                 buffer.clear()
                 update_db()  # Update the database with current statistics
@@ -364,8 +426,10 @@ def run_data_collection(config_path=None, sigmf_file=None, debug=False):
         lines = '\n'.join(buffer)
         print(f"Processing remaining {len(buffer)} lines...")
         parse_iridium_traffic(lines, debug=debug)
+        get_prr(buffer)
         # Clear the buffer and reset line count
         buffer.clear()
+        update_db()  # Final update to the database
 
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -383,3 +447,5 @@ if __name__ == "__main__":
     # Pass arguments to run_data_collection
     run_data_collection(config_path=args.config, sigmf_file=args.sigmf, debug=False)
     print(total_type_counts)
+    print(all_types)
+    print(prr_count_frames)

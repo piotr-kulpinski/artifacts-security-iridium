@@ -70,7 +70,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: /run/media/piotrk/44dc11d2-c3ad-4635-a33b-fded90c17888/iridium/2025-02-20/raw/register-02.sigmf-data
+    file: ''
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -102,6 +102,20 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [664, 352.0]
+    rotation: 0
+    state: enabled
+- name: note_0
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: 'Depending what datatype was used to save the SigMF file use this conversion
+      or not. The one from IShort to Coomplex type. '
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [384, 336.0]
     rotation: 0
     state: enabled
 - name: qtgui_sink_x_0

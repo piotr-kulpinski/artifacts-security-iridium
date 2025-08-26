@@ -35,11 +35,15 @@ This code contains the following main components: <br>
 - matplotlib
 
 
-## Hardware
+## Hardware for eavesdropping pipeline
 - USRP B210
 - Iridium L-band antenna
 - Appropriate cables 
 
+## Hardware for jamming/replay attacks
+- HackRF One or USRP B210 (USRP B210 needs different sinks in the flowgraph)
+- Iridium L-band antenna
+- Appropriate cables 
 
 
 # gr-iridiumtx
